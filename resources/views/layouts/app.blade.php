@@ -104,10 +104,10 @@
                     <a class="nav-link {{ request()->routeIs('questions.index') ? 'active' : '' }}"
                        href="{{ route('questions.index') }}">Questions</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('students.index') ? 'active' : '' }}"
-                       href="{{ route('students.index') }}">Students</a>
-                </li>
+{{--                <li class="nav-item">--}}
+{{--                    <a class="nav-link {{ request()->routeIs('students.index') ? 'active' : '' }}"--}}
+{{--                       href="{{ route('students.index') }}">Students</a>--}}
+{{--                </li>--}}
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('answers.view') ? 'active' : '' }}"
                        href="{{ route('answers.view') }}">AnswersView</a>
