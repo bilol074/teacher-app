@@ -38,6 +38,8 @@ class UserAnswerController extends Controller
                 ->get();
         }
 
+
+
         return view('answers.index', compact('lessons', 'selectedLesson', 'questions', 'selectedQuestion', 'allQuestions', 'selectedType'));
     }
 
@@ -50,7 +52,7 @@ class UserAnswerController extends Controller
         return redirect()->route('answers.index', [
             'lesson_id' => $request->lesson_id,
             'question_id' => $request->question_id,
-            'type'=> $request->type
+            'type'=> $request->type,
         ]);
     }
 
