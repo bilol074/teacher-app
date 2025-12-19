@@ -21,6 +21,7 @@ class UserAnswerController extends Controller
 
         $questions = collect();
         $allQuestions = collect();
+        $alreadySubmitted = false; // Yangi o'zgaruvchi
 
         if ($selectedLesson) {
             $query = Question::where('lesson_id', $selectedLesson);
@@ -31,18 +32,21 @@ class UserAnswerController extends Controller
         }
 
         if ($selectedLesson && $selectedQuestion) {
-            $questions = Question::where('lesson_id', $selectedLesson)
-                ->whereHas('items', function ($query) use ($selectedQuestion) {
-                    return $query->where('question_id', $selectedQuestion);
-                })
-                ->get();
+            $questions = Question::with('items')->where('id', $selectedQuestion)->get();
+
+            // MOCK test bo'lsa, foydalanuvchi avval javob berganini tekshiramiz
+            if ($selectedType === 'mock') {
+                $alreadySubmitted = UserAnswer::where('user_id', Auth::id())
+                    ->where('question_id', $selectedQuestion)
+                    ->exists();
+            }
         }
 
-
-
-        return view('answers.index', compact('lessons', 'selectedLesson', 'questions', 'selectedQuestion', 'allQuestions', 'selectedType'));
+        return view('answers.index', compact(
+            'lessons', 'selectedLesson', 'questions',
+            'selectedQuestion', 'allQuestions', 'selectedType', 'alreadySubmitted'
+        ));
     }
-
     /**
      * 2️⃣ Lesson tanlanganda yoki savol o'zgarganda qaytish
      */
@@ -61,28 +65,37 @@ class UserAnswerController extends Controller
      */
     public function store(Request $request)
     {
+        // 1. Dastlabki tekshiruv
+        if ($request->type === 'mock') {
+            $alreadyDone = UserAnswer::where('user_id', Auth::id())
+                ->where('question_id', $request->question_id)
+                ->exists();
+
+            if ($alreadyDone) {
+                return redirect()->back()->withErrors(['mock' => 'Bu mock testni qayta topshira olmaysiz!']);
+            }
+        }
+
+        // 2. Validatsiya
         $request->validate([
-            'question_id' => 'required',
+            'question_id' => 'required|exists:questions,id',
             'answers' => 'required|array',
             'answers.*' => 'required|string|max:1000',
         ]);
 
+        // 3. Saqlash
         foreach ($request->answers as $questionItemId => $answerText) {
-            UserAnswer::updateOrCreate(
-                [
-                    'user_id' => Auth::id(),
-                    'question_id' => $request->question_id,
-                    'question_item_id' => $questionItemId
-                ],
-                [
-                    'answers' => $answerText, // 'answers' ustuni
-                ]
-            );
+            UserAnswer::create([
+                'user_id' => Auth::id(),
+                'question_id' => $request->question_id,
+                'question_item_id' => $questionItemId,
+                'answers' => $answerText,
+            ]);
         }
 
-        return back()->with('success', 'Javoblar muvaffaqiyatli saqlandi!');
+        return redirect()->route('answers.index', ['lesson_id' => $request->lesson_id])
+            ->with('success', 'Javoblar muvaffaqiyatli saqlandi!');
     }
-
     // 4️⃣ Barcha javoblarni ko‘rish
     public function viewAnswers(Request $request)
     {

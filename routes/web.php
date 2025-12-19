@@ -7,9 +7,13 @@ use App\Http\Controllers\UserAnswerController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\UserController;
+use App\Mail\TestMail;
 
 
-
+Route::get('/test-mail', function () {
+    Mail::to('abduraimovbilol074@gmail.com')->send(new TestMail());
+    return 'Email yuborildi!';
+});
 
  Route::get('/', function () {
     return view('welcome');

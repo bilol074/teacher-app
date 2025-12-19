@@ -63,74 +63,47 @@
         </form>
 
         <div class="container">
-            @if ($selectedLesson)
+
                 {{-- Savollar mavjud bo'lsa ko'rsatish --}}
                 @if ($questions->isNotEmpty())
                     <h3 class="mt-4">Tanlangan dars savollari</h3>
 
-                    <form action="{{ route('store-answers') }}" method="POST" class="mb-5">
-                        @csrf
-                        <input type="hidden" name="question_id" value="{{ $selectedQuestion }}">
+                    @if($selectedType === 'mock' && $alreadySubmitted)
+                        {{-- Mock test topshirilgan bo'lsa --}}
+                        <div class="alert alert-warning shadow-sm border-warning">
+                            <h4 class="alert-heading">⚠️ Test topshirilgan!</h4>
+                            <p>Siz ushbu Mock testni allaqachon topshirgansiz. Mock testlarni faqat bir marta ishlash mumkin.</p>
+                        </div>
+                    @else
+                        {{-- Test hali topshirilmagan bo'lsa yoki Daily bo'lsa --}}
+                        <form action="{{ route('store-answers') }}" method="POST" class="mb-5">
+                            @csrf
+                            <input type="hidden" name="question_id" value="{{ $selectedQuestion }}">
+                            <input type="hidden" name="type" value="{{ $selectedType }}"> {{-- Controllerga type yetib borishi uchun --}}
 
-                        @foreach ($questions as $question)
-                            @foreach ($question->items as $item)
-                                <div class="mb-4 p-3 border rounded shadow-sm">
-                                    <label for="answer-{{ $item->id }}" class="form-label d-block">
-                                        <strong>{{ $loop->iteration }}. Savol: </strong>
-                                        {{ $item->question_text }}
-                                    </label>
+                            @foreach ($questions as $question)
+                                @foreach ($question->items as $item)
+                                    <div class="mb-4 p-3 border rounded shadow-sm">
+                                        <label for="answer-{{ $item->id }}" class="form-label d-block">
+                                            <strong>{{ $loop->iteration }}. Savol: </strong>
+                                            {{ $item->question_text }}
+                                        </label>
 
-                                    {{-- --- RASM QISMI BOSHLANDI --- --}}
-                                    @if (!empty($item->image))
-                                        <div class="my-3">
-                                            <img src="{{ asset('storage/' . $item->image) }}"
-                                                 alt="Savol rasmi"
-                                                 class="img-fluid rounded border shadow-sm"
-                                                 style="max-height: 200px; object-fit: contain; cursor: pointer;"
-                                                 data-bs-toggle="modal"
-                                                 data-bs-target="#imageZoomModal"
-                                                 onclick="showFullImage(this.src)">
-                                            <div class="text-muted small mt-1">
-                                                <i class="fas fa-search-plus"></i> Kattalashtirish uchun rasm ustiga bosing
+                                        @if (!empty($item->image))
+                                            <div class="my-3">
+                                                <img src="{{ asset('storage/' . $item->image) }}" class="img-fluid rounded border" style="max-height: 200px; cursor: pointer;" onclick="showFullImage(this.src)" data-bs-toggle="modal" data-bs-target="#imageZoomModal">
                                             </div>
-                                        </div>
-                                    @endif
-                                    {{-- --- RASM QISMI TUGADI --- --}}
+                                        @endif
 
-                                    <input type="text" name="answers[{{ $item->id }}]" id="answer-{{ $item->id }}" class="form-control" placeholder="Javobingizni yozing...">
-                                </div>
+                                        <input type="text" name="answers[{{ $item->id }}]" id="answer-{{ $item->id }}" class="form-control" placeholder="Javobingizni yozing..." required>
+                                    </div>
+                                @endforeach
                             @endforeach
-                        @endforeach
 
-                        <button type="submit" class="btn btn-primary w-100 mt-3 py-2">Javoblarni Saqlash</button>
-                    </form>
-
+                            <button type="submit" class="btn btn-primary w-100 mt-3 py-2">Javoblarni Saqlash</button>
+                        </form>
+                    @endif
                 @else
                     <div class="alert alert-info mt-4">Bu dars uchun savollar topilmadi.</div>
-                @endif
-            @else
-                <div class="alert alert-info mt-4">Iltimos, yuqoridan fan tanlang.</div>
-            @endif
-        </div>
-        {{-- KATTALASHTIRISH UCHUN MODAL (Oyna) --}}
-        <div class="modal fade" id="imageZoomModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-lg"> <div class="modal-content">
-                    <div class="modal-body p-0 position-relative">
-                        {{-- Yopish tugmasi --}}
-                        <button type="button" class="btn-close position-absolute top-0 end-0 m-3 bg-white p-2" data-bs-dismiss="modal" aria-label="Close" style="z-index: 10;"></button>
-
-                        {{-- Katta rasm chiqadigan joy --}}
-                        <img id="zoomedImage" src="" class="w-100 h-auto" alt="Katta rasm">
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- SCRIPT --}}
-        <script>
-            function showFullImage(src) {
-                // Kichik rasm manzilini (src) olib, Modal ichidagi rasmga qo'yamiz
-                document.getElementById('zoomedImage').src = src;
-            }
-        </script>
+    @endif
 @endsection
