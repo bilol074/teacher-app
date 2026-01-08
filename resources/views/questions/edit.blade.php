@@ -14,7 +14,7 @@
                     @csrf
                     @method('PUT')
 
-                    {{-- 🟢 Question Name, Teacher, Lesson bir qatorda --}}
+                    {{-- 🟢 Question Name, Teacher, Lesson bir qatorda --}} 
                     <div class="row mb-4">
                         <div class="col-md-4">
                             <label for="questionName" class="form-label">Question Name</label>
@@ -42,6 +42,17 @@
                         <div class="col-md-4">
                             <label for="lesson" class="form-label">Select Lesson</label>
                             <select name="lesson_id" id="lesson" class="form-select" required>
+                                <option value="">Tanlang</option>
+                                @foreach ($lessons as $lesson)
+                                    <option value="{{ $lesson->id }}" {{ $lesson->id == $question->lesson_id ? 'selected' : '' }}>
+                                        {{ $lesson->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="lesson" class="form-label">Select Lesson</label>
+                            <select name="question_type" id="type" class="form-select" required>
                                 <option value="">Tanlang</option>
                                 @foreach ($lessons as $lesson)
                                     <option value="{{ $lesson->id }}" {{ $lesson->id == $question->lesson_id ? 'selected' : '' }}>

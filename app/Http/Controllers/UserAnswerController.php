@@ -21,7 +21,8 @@ class UserAnswerController extends Controller
 
         $questions = collect();
         $allQuestions = collect();
-        $alreadySubmitted = false; // Yangi o'zgaruvchi
+        $alreadySubmitted = false;
+        $durationSeconds = 0; // Standart qiymat
 
         if ($selectedLesson) {
             $query = Question::where('lesson_id', $selectedLesson);
@@ -32,19 +33,29 @@ class UserAnswerController extends Controller
         }
 
         if ($selectedLesson && $selectedQuestion) {
-            $questions = Question::with('items')->where('id', $selectedQuestion)->get();
+            // 1. Avval savolni bazadan yuklab olamiz
+            $questionData = Question::with('items')->find($selectedQuestion);
 
-            // MOCK test bo'lsa, foydalanuvchi avval javob berganini tekshiramiz
-            if ($selectedType === 'mock') {
-                $alreadySubmitted = UserAnswer::where('user_id', Auth::id())
-                    ->where('question_id', $selectedQuestion)
-                    ->exists();
+            // 2. Agar savol topilsa, amallarni bajaramiz
+            if ($questionData) {
+                $questions = collect([$questionData]);
+
+                // Durationni sekundga o'giramiz (agar duration null bo'lsa 0 oladi)
+                $durationSeconds = ($questionData->duration ?? 0) * 60;
+
+                // MOCK test bo'lsa, topshirilganini tekshiramiz
+                if ($selectedType === 'mock') {
+                    $alreadySubmitted = UserAnswer::where('user_id', Auth::id())
+                        ->where('question_id', $selectedQuestion)
+                        ->exists();
+                }
             }
         }
 
         return view('answers.index', compact(
             'lessons', 'selectedLesson', 'questions',
-            'selectedQuestion', 'allQuestions', 'selectedType', 'alreadySubmitted'
+            'selectedQuestion', 'allQuestions', 'selectedType', 'alreadySubmitted',
+            'durationSeconds'
         ));
     }
     /**
